@@ -16,7 +16,7 @@
             "url": "https://github.com/ConradIrwin/async-profile"
         }
     ],
-    "main": "index.coffee",
+    "main": "lib/index.js",
     "maintainers": [
         {
             "email": "conrad@bugsnag.com",
@@ -31,5 +31,5 @@
     "scripts": {
         "prepublish": "coffee -c -o lib src/*"
     },
-    "version": "0.1.0"
+    "version": "0.1.1"
 }
