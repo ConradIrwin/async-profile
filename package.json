@@ -1,0 +1,35 @@
+{
+    "dependencies": {
+        "async-listener": "0.4.5"
+    },
+    "description": "Node.js async CPU profiler",
+    "devDependencies": {
+        "coffee-script": "latest"
+    },
+    "engines": {
+        "node": ">=0.8.0"
+    },
+    "homepage": "https://github.com/ConradIrwin/async-profile",
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/ConradIrwin/async-profile"
+        }
+    ],
+    "main": "index.coffee",
+    "maintainers": [
+        {
+            "email": "conrad@bugsnag.com",
+            "name": "Conrad Irwin"
+        }
+    ],
+    "name": "async-profile",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ConradIrwin/async-profile"
+    },
+    "scripts": {
+        "prepublish": "coffee -c -o lib src/*"
+    },
+    "version": "0.1.0"
+}
