@@ -1,4 +1,4 @@
-Node async-profiler profiles CPU usage in node apps.
+Node async-profile profiles CPU usage in node apps.
 
 It lets you see at a glance how much CPU time is being taken up by a given part of your app, even if that
 part of your app is also doing asynchronous IO.
@@ -12,24 +12,24 @@ This currently only works on node 0.10. 0.11 support should be easy to add, and 
 
 
 ```
-npm install async-profiler
+npm install async-profile
 ```
 
 # Usage
 
-When you create a new AsyncProfiler it automatically profiles work done by any asynchronous callbacks
+When you create a new AsyncProfile it automatically profiles work done by any asynchronous callbacks
 created in the current 'tick', and then writes the results to stdout.
 
 ```javascript
-var AsyncProfiler = require('async-profiler')
+var AsyncProfile = require('async-profile')
 
 // First set up an isolated callback (using any function that executes its callback asynchronously).
 // Any callbacks created in this callback will be profiled transitively.
 process.nextTick(function () {
 
-    // Now create a new profiler. It will attach itself to any
+    // Now start profiling. The profile will include all
     // callbacks created while the current callback is running.
-    new AsyncProfiler()
+    new AsyncProfile()
 
     // Finally queue up the work to be done asynchronously.
     process.nextTick(doWork);
@@ -68,7 +68,7 @@ The first line contains 4 numbers:
     you're waiting for a lot of parallel IO events, or because you're waiting for other callbacks to stop using the CPU.
 
 Each subsequent line contains 4 bits of information:
-* `start`: The time since you called `new AsyncProfiler()` and when this callback started running.
+* `start`: The time since you called `new AsyncProfile()` and when this callback started running.
 * `cpu time`: The amount of CPU time it took to execute this callback.
 * `location`: The point in your code at which this callback was created. (see also [marking](#marking)).
 * `overhead`: The amount of CPU time it took to calculate `location` (see also [speed](#speed)) which has been subtraced from the `cpu time` column.
@@ -82,7 +82,7 @@ correspond to the location of a callback function in your code. At any point whi
 make it easy to spot in the profiler output.
 
 ```javascipt
-AsyncProfiler.mark 'SOMETHING EASY TO SPOT'
+AsyncProfile.mark 'SOMETHING EASY TO SPOT'
 ```
 
 For example in the above output, I've done that for the callback that was running `redis.eval` and marked it as `'REDIS EVAL SCRIPT'`.
@@ -96,7 +96,7 @@ There is some overhead not included in the overhead numbers, but it should hopef
 You can make the profiler faster by creating it with the fast option. This disables both stack-trace calculation, and overhead calculation.
 
 ```javascript
-new AsyncProfiler({fast: true})
+new AsyncProfile({fast: true})
 ```
 
 ## Stopping
@@ -106,7 +106,7 @@ If your process happens to make an infinite cascade of callbacks (often this hap
 
 ```javascript
 
-var p = new AsyncProfiler()
+var p = new AsyncProfile()
 Promise.try(doWork).finally(function () {
     p.stop();
 });
@@ -117,7 +117,7 @@ Promise.try(doWork).finally(function () {
 You can pass a callback into the constructor to generate your own output. The default callback looks like this:
 
 ```javascript
-new AsyncProfiler({
+new AsyncProfile({
     callback: function (result) {
         result.print();
     }
@@ -151,5 +151,5 @@ You can fix this by sending a pull request :).
 
 # Meta-fu
 
-async-profiler is licensed under the MIT license. Comments, pull-requests and issue reports are welcome.
+async-profile is licensed under the MIT license. Comments, pull-requests and issue reports are welcome.
 
