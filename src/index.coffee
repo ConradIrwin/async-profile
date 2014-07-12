@@ -33,10 +33,11 @@ class AsyncProfile
   @wrap: (fn) ->
     wrapCallback(fn)
 
-  constructor: (@opts, @callback) ->
-    if !@callback
-      @callback = @opts
+  constructor: (@opts) ->
+    if !@opts
       @opts = {}
+    if !@opts.callback
+      @opts.callback = (result) -> result.print()
 
     @awaiting = 0
     @ticks = []
@@ -47,12 +48,12 @@ class AsyncProfile
     @listener = process.createAsyncListener(
       () =>
         return if @end
-        overhead = if @tick && @opts.stack
+        overhead = if @tick && !@opts.fast
                     process.hrtime()
 
         @awaiting += 1
         tick = {queue: process.hrtime(), parent: @tick, overhead: [0,0]}
-        tick.stack = @stack() if @opts.stack
+        tick.stack = @stack() if !@opts.fast
         @ticks.push(tick)
         if overhead
           overhead = process.hrtime(overhead)
@@ -119,8 +120,8 @@ class AsyncProfile
       if tick.end[0] > max[0] || (tick.end[0] == max[0] && tick.queue[1] > max[1])
         max = tick.end
 
-      sum[0] += tick.end[0] - tick.start[0]
-      sum[1] += tick.end[1] - tick.start[1]
+      sum[0] += tick.end[0] - tick.start[0] - tick.overhead[0]
+      sum[1] += tick.end[1] - tick.start[1] - tick.overhead[1]
       wait[0] += tick.start[0] - tick.queue[0]
       wait[1] += tick.start[1] - tick.queue[1]
 
