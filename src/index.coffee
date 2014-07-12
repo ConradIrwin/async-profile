@@ -94,7 +94,7 @@ class AsyncProfile
     if @awaiting == 0
       @end = @tick.end
       process.removeAsyncListener(@listener)
-      @callback(@)
+      @opts.callback(@)
     previous = @tick.previous
     delete @tick.previous
     @tick = previous
@@ -171,6 +171,6 @@ class AsyncProfile
     return if @end
     @end ||= process.hrtime()
     process.removeAsyncListener(@listener)
-    @callback(@)
+    @opts.callback(@)
 
 module.exports = AsyncProfile
