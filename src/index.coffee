@@ -44,58 +44,59 @@ class AsyncProfile
     @start = process.hrtime()
     AsyncProfile.current = @
 
-    log = []
-
     @listener = process.createAsyncListener(
       () =>
         return if @end
+        overhead = if @tick && @opts.stack
+                    process.hrtime()
+
         @awaiting += 1
-        tick = {queue: process.hrtime(), parent: @tick}
-        tick.stack = new Error().stack if @opts.stack
+        tick = {queue: process.hrtime(), parent: @tick, overhead: [0,0]}
+        tick.stack = @stack() if @opts.stack
         @ticks.push(tick)
+        if overhead
+          overhead = process.hrtime(overhead)
+          @tick.overhead[0] += overhead[0]
+          @tick.overhead[1] += overhead[1]
+
         tick
 
       {
-        before: (_, storage) =>
-          log.push('before')
-          return if @end
-          @awaiting -= 1
-          storage.previous = @tick
-          @tick = storage
-          @tick.start = process.hrtime()
-          AsyncProfile.current = @
-
-        after: (_, storage) =>
-          log.push('after')
-          return if @end
-          @tick.end = process.hrtime()
-          AsyncProfile.current = null
-          if @awaiting == 0
-            @end = @tick.end
-            process.removeAsyncListener(@listener)
-            @callback(@)
-          previous = @tick.previous
-          delete @tick.previous
-          @tick = previous
-
-        error: (storage, err) =>
-          log.push('err')
-          return if @end
-          return if err.stack.indexOf('AsyncProfile') > -1
-
-          @tick.end = process.hrtime()
-          AsyncProfile.current = null
-          if @awaiting == 0
-            @end = @tick.end
-            process.removeAsyncListener(@listener)
-            @callback(@)
-
-          previous = @tick.previous
-          delete @tick.previous
-          @tick = previous
+        before: (_, storage) => @before(storage)
+        after: (_, storage) => @after(storage)
+        error: (storage, err) => @after(storage)
       }
     )
     process.addAsyncListener(@listener)
+
+  stack: ->
+    orig = Error.prepareStackTrace
+    Error.prepareStackTrace = (_, stack) -> stack
+    err = new Error()
+    Error.captureStackTrace(err, arguments.callee)
+    stack = err.stack
+    Error.prepareStackTrace = orig
+    return err.stack
+
+  before: (storage) ->
+    return if @end
+    @awaiting -= 1
+    storage.previous = @tick
+    @tick = storage
+    @tick.start = process.hrtime()
+    AsyncProfile.current = @
+
+  after: (storage) ->
+    return if @end
+    @tick.end ||= process.hrtime()
+    AsyncProfile.current = null
+    if @awaiting == 0
+      @end = @tick.end
+      process.removeAsyncListener(@listener)
+      @callback(@)
+    previous = @tick.previous
+    delete @tick.previous
+    @tick = previous
 
   @mark: (context) ->
     if @current
@@ -125,7 +126,7 @@ class AsyncProfile
 
     total = [sum[0] + wait[0], sum[1] + wait[1]]
 
-    "total: #{@time(sum)}ms (in #{@diff(max, min)}ms real time, max concurrency: #{(@diff(max, min) / @time(sum)).toFixed(1)}, self parallelism: #{(@time(total) / @diff(max, min)).toFixed(1)})"
+    "total: #{@time(sum)}ms (in #{@diff(max, min)}ms real time, max concurrency: #{(@diff(max, min) / @time(sum)).toFixed(1)}, await time: #{@time(wait)}ms)"
 
   print: (parent=null, from=0, indent="") ->
 
@@ -143,13 +144,9 @@ class AsyncProfile
       if tick.stack && !tick.mark
         tick.mark = @getLineFromStack(tick.stack)
 
-      sum = [0, 0]
-      for i in [from...@ticks.length]
-        if @ticks[i].parent == tick
-          sum[0] += tick.end[0] - tick.start[0]
-          sum[1] += tick.end[1] - tick.start[1]
+      time = [tick.end[0] - tick.start[0] - tick.overhead[0], tick.end[1] - tick.start[1] - tick.overhead[1]]
 
-      console.log "#{@diff(tick.start, @start)}: #{@diff(tick.end, tick.start)}ms #{indent} #{tick.mark || "[no mark]"} (#{@time(sum)})  "
+      console.log "#{@diff(tick.start, @start)}: #{@time(time)}ms #{indent} #{tick.mark || "[no mark]"} (#{@time(tick.overhead)})  "
 
       @print(tick, 0, indent + "  ")
 
@@ -157,9 +154,11 @@ class AsyncProfile
       console.log ""
 
   getLineFromStack: (stack) ->
+    stack = Error.prepareStackTrace(new Error("ohai"), stack)
+
     lines = stack.split("\n")
     for l in lines
-      return l if l.indexOf(process.cwd()) > -1 && l.indexOf('node_modules') < l.indexOf(process.cwd())
+      return l.replace(/^\s*/,'') if l.indexOf(process.cwd()) > -1 && l.indexOf('node_modules') < l.indexOf(process.cwd())
 
   diff: (after, before) ->
     @time([after[0] - before[0], after[1] - before[1]])
@@ -168,6 +167,7 @@ class AsyncProfile
     ((1000 * delta[0]) + (delta[1] / 1000000)).toFixed(3)
 
   stop: () ->
+    return if @end
     @end ||= process.hrtime()
     process.removeAsyncListener(@listener)
     @callback(@)
