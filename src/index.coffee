@@ -127,7 +127,7 @@ class AsyncProfile
 
     total = [sum[0] + wait[0], sum[1] + wait[1]]
 
-    "total: #{@time(sum)}ms (in #{@diff(max, min)}ms real time, max concurrency: #{(@diff(max, min) / @time(sum)).toFixed(1)}, await time: #{@time(wait)}ms)"
+    "total: #{@time(sum)}ms (in #{@diff(max, min)}ms real time, CPU load: #{(@time(sum) / @diff(max, min)).toFixed(1)}, wait time: #{@time(wait)}ms)"
 
   print: (parent=null, from=0, indent="") ->
 
