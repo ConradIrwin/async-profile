@@ -155,7 +155,10 @@ class AsyncProfile
       console.log ""
 
   getLineFromStack: (stack) ->
-    stack = Error.prepareStackTrace(new Error("ohai"), stack)
+    if Error.prepareStackTrace
+      stack = Error.prepareStackTrace(new Error("ohai"), stack)
+    else
+      stack = stack.toString()
 
     lines = stack.split("\n")
     for l in lines
