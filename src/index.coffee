@@ -176,4 +176,10 @@ class AsyncProfile
     process.removeAsyncListener(@listener)
     @opts.callback(@)
 
+  @profile: (fn) ->
+    process.nextTick(() ->
+      new AsyncProfile()
+      process.nextTick(fn)
+    )
+
 module.exports = AsyncProfile
