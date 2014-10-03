@@ -14,6 +14,7 @@ describe 'AsyncProfile', ->
     new AsyncProfile(
       callback: (result) ->
         assert.equal result.ticks.length, 4
+        result.print()
         done()
     )
 

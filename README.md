@@ -39,7 +39,7 @@ For more options see [the advanced usage section](#Advanced)
 The output looks something like this: (taken from a profile of [bugsnag](https://bugsnag.com)'s backend)
 
 ```
-total: 1.823ms (in 2.213ms real time, max concurrency: 1.2, wait time: 3.688ms)
+total: 1.823ms (in 2.213ms real time, CPU load: 0.8, wait time: 3.688ms)
 0.879: 0.011ms    at Function.Project.fromCache (/0/bugsnag/event-worker/lib/project.coffee:12:16) (0.072ms)
 0.970: 0.363ms    [no mark] (0.250ms)
 1.589: 0.002ms        at /0/bugsnag/event-worker/workers/notify.coffee:29:13 (0.000ms)
@@ -60,10 +60,8 @@ The first line contains 4 numbers:
 
 * `total` — the total amount of time spent running CPU.
 * `real time` — the amount of time between the first callack starting and the last callback ending.
-* `max concurrency` — is just `real time / total`. Assuming that node is single threaded, and you want to peg the CPU at 100%, how
-    many tasks like this could run concurrently.
-* `wait time` — the sum of the times between each callback being created and being called. High wait times can happen either because
-    you're waiting for a lot of parallel IO events, or because you're waiting for other callbacks to stop using the CPU.
+* `CPU load` — is just `total / real time`. As node is singlethreaded, this number ranges between 0 (CPU wasn't doing anything) and 1 (CPU was running the whole time).
+* `wait time` — the sum of the times between each callback being created and being called. High wait times can happen either because you're waiting for a lot of parallel IO events, or because you're waiting for other callbacks to stop using the CPU.
 
 Each subsequent line contains 4 bits of information:
 * `start`: The time since you called `new AsyncProfile()` and when this callback started running.
