@@ -17,24 +17,22 @@ npm install async-profile
 
 # Usage
 
-When you create a new AsyncProfile it automatically profiles work done by any asynchronous callbacks
-created in the current 'tick', and then writes the results to stdout.
+Call `AsyncProfile.profile` with a function. That function will be called asynchronously, and all of the timeouts and network events it causes will also be profiled. A summary will then be printed.
 
 ```javascript
 var AsyncProfile = require('async-profile')
 
-// First set up an isolated callback (using any function that executes its callback asynchronously).
-// Any callbacks created in this callback will be profiled transitively.
-process.nextTick(function () {
+AsyncProfile.profile(function () {
 
-    // Now start profiling. The profile will include all
-    // callbacks created while the current callback is running.
-    new AsyncProfile()
+    // doStuff
+    setTimeout(function () {
+        // doAsyncStuff
+    });
 
-    // Finally queue up the work to be done asynchronously.
-    process.nextTick(doWork);
-})
+});
 ```
+
+For more options see [the advanced usage section](#Advanced)
 
 ## Interpreting the output
 
@@ -87,6 +85,24 @@ AsyncProfile.mark 'SOMETHING EASY TO SPOT'
 
 For example in the above output, I've done that for the callback that was running `redis.eval` and marked it as `'REDIS EVAL SCRIPT'`.
 
+# Advanced
+
+If you need advanced behaviour, you need to create the profiler manually, and then run some code. The profiler will be active for any callbacks created synchronously after it was.
+
+```javascript
+
+setTimeout(function () {
+    p = new AsyncProfiler();
+
+    setTimeout(function () {
+        // doStuff
+
+    });
+});
+
+
+```
+
 ## Speed
 
 Like all profilers, this one comes with some overhead. In fact, by default it has so much overhead that I had to calculate it and then subtract it from the results :p.
@@ -124,7 +140,24 @@ new AsyncProfile({
 );
 ```
 
-You have access to all the useful properties of the profiler on the result object.
+The result object looks like this:
+
+```javascript
+{
+    start: [1, 000000000], # process.hrtime()
+    end:   [9, 000000000], # process.hrtime()
+    ticks: [
+        {
+            queue: [1, 000000000], # when the callback was created
+            start: [2, 000000000], # when the callback was called
+            end:   [3, 000000000], # when the callback finished
+            overhead: [0, 000100000], # how much time was spent inside the profiler itself
+            parent: { ... }, # the tick that was running when the callback was created
+        }
+    ]
+}
+
+This gives you a flattened tree of ticks, sorted by `queue` time. The parent will always come before its children in the array.
 
 # Common problems
 
