@@ -4,7 +4,8 @@
     },
     "description": "Node.js async CPU profiler",
     "devDependencies": {
-        "coffee-script": "latest"
+        "coffee-script": "latest",
+        "mocha": "latest"
     },
     "engines": {
         "node": ">=0.8.0"
