@@ -58,11 +58,18 @@ class Result
     if Error.prepareStackTrace
       stack = Error.prepareStackTrace(new Error("ohai"), stack)
     else
-      stack = stack.toString()
+      stack = "new Error('ohai')\n" +
+        stack.map((f) -> " at #{f.toString()}\n").join("")
 
     lines = stack.split("\n")
     for l in lines
       return l.replace(/^\s*/,'') if l.indexOf(process.cwd()) > -1 && l.indexOf('node_modules') < l.indexOf(process.cwd())
+
+    for l in lines
+      return l.replace(/^\s*/,'') if l.indexOf(process.cwd()) > -1 &&  l.indexOf('async-profile') == -1
+
+    for l in lines.slice(1)
+      return l.replace(/^\s*/,'') if l.indexOf('async-profile') == -1
 
   diff: (after, before) ->
     @time([after[0] - before[0], after[1] - before[1]])

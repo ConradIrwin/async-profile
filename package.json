@@ -30,7 +30,8 @@
         "url": "https://github.com/ConradIrwin/async-profile"
     },
     "scripts": {
-        "prepublish": "coffee -c -o lib src/*"
+        "prepublish": "coffee -c -o lib src/*",
+        "test": "mocha --compilers coffee:coffee-script/register test",
     },
     "version": "0.3.1"
 }

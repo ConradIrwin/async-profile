@@ -30,3 +30,18 @@ describe 'AsyncProfile', ->
       assert.deepEqual result.end, result.ticks[0].end
       done()
     )
+
+  it 'should let you mark ticks', (done) ->
+    new AsyncProfile(
+      callback: (result) ->
+        assert.equal result.ticks.length, 2
+
+        assert.deepEqual result.ticks[0].mark, 'one'
+        assert.deepEqual result.ticks[1].mark, 'two'
+        done()
+    )
+
+    process.nextTick ->
+      AsyncProfile.mark 'one'
+      process.nextTick ->
+        AsyncProfile.mark 'two'
