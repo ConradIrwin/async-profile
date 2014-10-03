@@ -154,6 +154,7 @@ The result object looks like this:
         }
     ]
 }
+```
 
 This gives you a flattened tree of ticks, sorted by `queue` time. The parent will always come before its children in the array.
 
