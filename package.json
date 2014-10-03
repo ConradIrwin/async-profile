@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "async-listener": "0.4.5"
+        "async-listener": "0.5.0"
     },
     "description": "Node.js async CPU profiler",
     "devDependencies": {
@@ -31,7 +31,7 @@
     },
     "scripts": {
         "prepublish": "coffee -c -o lib src/*",
-        "test": "mocha --compilers coffee:coffee-script/register test",
+        "test": "mocha --compilers coffee:coffee-script/register test"
     },
     "version": "0.3.1"
 }
